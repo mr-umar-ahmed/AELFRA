@@ -1,13 +1,14 @@
-"useClient";
-"use strict";
+"use client";
+
 import { useEffect, useState, useRef } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
 
 interface NavBarProps {
   onOpenAccessModal?: () => void;
+  onOpenTerminalModal?: () => void;
 }
 
-export function NavBar({ onOpenAccessModal }: NavBarProps) {
+export function NavBar({ onOpenAccessModal, onOpenTerminalModal }: NavBarProps) {
   const barRef = useRef<HTMLDivElement>(null);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [activeChapter, setActiveChapter] = useState("01 PROLOGUE");
@@ -73,15 +74,28 @@ export function NavBar({ onOpenAccessModal }: NavBarProps) {
             </span>
           </div>
 
-          {/* Theme Palette Swatches & Audio / Access Actions */}
-          <div className="flex items-center gap-3">
+          {/* Theme Palette Swatches & Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Color Palette Indicators */}
-            <div className="hidden sm:flex items-center gap-1 bg-abyssal/40 px-2.5 py-1 rounded-full border border-line">
+            <div className="hidden lg:flex items-center gap-1 bg-abyssal/40 px-2.5 py-1 rounded-full border border-line">
               <span title="Ocean Deep (#4E635E)" className="h-3 w-3 rounded-full bg-[#4E635E] border border-white/10" />
               <span title="Villa Nova (#E2E0C8)" className="h-3 w-3 rounded-full bg-[#E2E0C8] border border-white/10" />
               <span title="Siren Song (#A6B49E)" className="h-3 w-3 rounded-full bg-[#A6B49E] border border-white/10" />
               <span title="Big River (#818C78)" className="h-3 w-3 rounded-full bg-[#818C78] border border-white/10" />
             </div>
+
+            {/* Terminal CLI Launcher */}
+            <button
+              onClick={onOpenTerminalModal}
+              data-cursor="CLI"
+              className="flex items-center gap-1.5 rounded-full bg-abyssal-surface-hi/60 border border-line px-3 py-1.5 text-xs text-siren-song hover:text-villa-nova hover:border-siren-song transition-all"
+              title="Launch Sovereign CLI Terminal"
+            >
+              <span className="font-mono text-[11px] font-bold text-villa-nova">&gt;_</span>
+              <span className="font-mono text-[10px] uppercase tracking-wider hidden sm:inline">
+                CLI
+              </span>
+            </button>
 
             {/* Audio Toggle Simulation */}
             <button
@@ -102,6 +116,7 @@ export function NavBar({ onOpenAccessModal }: NavBarProps) {
             {/* Access Modal CTA */}
             <button
               onClick={onOpenAccessModal}
+              data-cursor="ACCESS"
               className="rounded-full bg-villa-nova text-abyssal px-4 py-1.5 font-sans text-xs font-bold tracking-wider hover:bg-white transition-colors uppercase shadow-[0_0_15px_rgba(226,224,200,0.3)]"
             >
               REQUEST ACCESS

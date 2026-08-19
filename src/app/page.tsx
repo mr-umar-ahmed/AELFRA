@@ -8,13 +8,20 @@ import { ModulesSection } from "@/components/modules/modules-section";
 import { ConvergenceSection } from "@/components/convergence/convergence-section";
 import { FooterSection } from "@/components/footer/footer-section";
 import { AccessModal } from "@/components/access-modal";
+import { TerminalModal } from "@/components/terminal-modal";
+import { CustomCursor } from "@/components/cursor";
 
 export default function Home() {
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
+  const [isTerminalModalOpen, setIsTerminalModalOpen] = useState(false);
 
   return (
     <>
-      <NavBar onOpenAccessModal={() => setIsAccessModalOpen(true)} />
+      <CustomCursor />
+      <NavBar
+        onOpenAccessModal={() => setIsAccessModalOpen(true)}
+        onOpenTerminalModal={() => setIsTerminalModalOpen(true)}
+      />
       <main className="relative bg-abyssal">
         <HeroSection />
         <CrisisSection />
@@ -25,6 +32,10 @@ export default function Home() {
       <AccessModal
         isOpen={isAccessModalOpen}
         onClose={() => setIsAccessModalOpen(false)}
+      />
+      <TerminalModal
+        isOpen={isTerminalModalOpen}
+        onClose={() => setIsTerminalModalOpen(false)}
       />
     </>
   );
