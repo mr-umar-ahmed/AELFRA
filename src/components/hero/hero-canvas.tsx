@@ -4,24 +4,21 @@ import { useEffect, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { ScrollTrigger } from "@/lib/gsap";
 
-// ── Obsidian palette (inverted from the original light-theme reference) ────
+// Palette matching user swatches:
 const C = {
-  off: "#F8FAFC",
-  offDim: "rgba(248,250,252,0.28)",
-  cyan: "#06B6D4",
-  purple: "#9333EA",
-  muted: "#64748B",
+  oceanDeep: "#4E635E",
+  villaNova: "#E2E0C8",
+  sirenSong: "#A6B49E",
+  bigRiver: "#818C78",
+  abyssal: "#090F0D",
 };
 
 type Props = {
-  /** The pinned scroll-range wrapper — drives camera progress via ScrollTrigger. */
   wrapperRef: RefObject<HTMLDivElement | null>;
-  /** Fades with the DOM overlay copy (used to keep both in lockstep). */
   overlayRef: RefObject<HTMLDivElement | null>;
   hintRef: RefObject<HTMLDivElement | null>;
 };
 
-// ── canvas texture helpers ───────────────────────────────────────────────
 function mkTex(draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void, w = 512, h = 512) {
   const c = document.createElement("canvas");
   c.width = w;
@@ -35,19 +32,22 @@ function mkTex(draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => vo
   tex.magFilter = THREE.LinearFilter;
   return tex;
 }
+
 function plane(tex: THREE.Texture, w: number, h: number) {
   return new THREE.Mesh(
     new THREE.PlaneGeometry(w, h),
-    new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
   );
 }
-function precLine(pts: [number, number, number][], col = 0xf8fafc, op = 1) {
+
+function precLine(pts: [number, number, number][], col = 0xE2E0C8, op = 1) {
   const verts: number[] = [];
   pts.forEach(([x, y, z]) => verts.push(x, y, z || 0));
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
   return new THREE.Line(g, new THREE.LineBasicMaterial({ color: col, opacity: op, transparent: true }));
 }
+
 function glowSprite(color: string, size: number, opacity = 0.55) {
   const tex = mkTex((ctx, w, h) => {
     const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
@@ -67,154 +67,79 @@ function glowSprite(color: string, size: number, opacity = 0.55) {
   s.scale.set(size, size, 1);
   return s;
 }
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
 
-// ── icon draw functions — dark metallic linework, cyan accent ──────────────
-function dShield(ctx: CanvasRenderingContext2D) {
+// Draw emblem in Ocean Deep + Villa Nova
+function dEmblem(ctx: CanvasRenderingContext2D) {
   ctx.save();
   ctx.translate(256, 256);
   ctx.beginPath();
-  ctx.moveTo(0, -190);
-  ctx.bezierCurveTo(60, -160, 120, -150, 170, -150);
-  ctx.lineTo(170, 20);
-  ctx.bezierCurveTo(170, 120, 90, 190, 0, 220);
-  ctx.bezierCurveTo(-90, 190, -170, 120, -170, 20);
-  ctx.lineTo(-170, -150);
-  ctx.bezierCurveTo(-120, -150, -60, -160, 0, -190);
-  ctx.closePath();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = C.off;
-  ctx.lineJoin = "round";
-  ctx.fillStyle = "rgba(6,182,212,0.06)";
-  ctx.fill();
+  ctx.arc(0, 0, 190, 0, Math.PI * 2);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = C.villaNova;
   ctx.stroke();
+
   ctx.beginPath();
-  ctx.moveTo(-70, 10);
-  ctx.lineTo(-20, 60);
-  ctx.lineTo(90, -60);
-  ctx.lineWidth = 12;
-  ctx.strokeStyle = C.cyan;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  ctx.arc(0, 0, 160, 0, Math.PI * 2);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = C.sirenSong;
   ctx.stroke();
+
+  // Geometric Aelfra Trident Symbol
+  ctx.beginPath();
+  ctx.moveTo(0, -110);
+  ctx.lineTo(60, 90);
+  ctx.lineTo(0, 50);
+  ctx.lineTo(-60, 90);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(78, 99, 94, 0.4)";
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = C.villaNova;
+  ctx.stroke();
+
   ctx.restore();
 }
 
-function dNetworkNodes(ctx: CanvasRenderingContext2D) {
+function dSyscallNodes(ctx: CanvasRenderingContext2D) {
   const cx = 256, cy = 256;
-  const ring: [number, number][] = [];
-  for (let a = 0; a < 8; a++) {
-    const rad = (a / 8) * Math.PI * 2;
-    ring.push([cx + Math.cos(rad) * 170, cy + Math.sin(rad) * 170]);
-  }
-  ring.forEach((n) => {
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const x = cx + Math.cos(angle) * 140;
+    const y = cy + Math.sin(angle) * 140;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.lineTo(n[0], n[1]);
-    ctx.strokeStyle = "rgba(6,182,212,0.4)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  });
-  for (let i = 0; i < ring.length; i++) {
-    const a = ring[i], b = ring[(i + 1) % ring.length];
-    ctx.beginPath();
-    ctx.moveTo(a[0], a[1]);
-    ctx.lineTo(b[0], b[1]);
-    ctx.strokeStyle = "rgba(248,250,252,0.14)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
-  ring.forEach((n) => {
-    ctx.beginPath();
-    ctx.arc(n[0], n[1], 10, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(0,0,0,0.9)";
-    ctx.fill();
-    ctx.strokeStyle = C.off;
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-  });
-  ctx.beginPath();
-  ctx.arc(cx, cy, 24, 0, Math.PI * 2);
-  ctx.fillStyle = C.cyan;
-  ctx.fill();
-  ctx.strokeStyle = C.off;
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-}
-
-function dPortalMark(ctx: CanvasRenderingContext2D) {
-  const cx = 256, cy = 256;
-  for (let r = 200; r > 20; r -= 26) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(6,182,212,${0.04 + (200 - r) / 600})`;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  }
-  ctx.lineWidth = 5;
-  ctx.strokeStyle = C.off;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 200, 0, Math.PI * 2);
-  ctx.stroke();
-  roundRect(ctx, cx - 40, cy - 40, 80, 80, 16);
-  ctx.fillStyle = C.cyan;
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-  ctx.fillStyle = "#000";
-  ctx.fill();
-}
-
-function dServerRack(ctx: CanvasRenderingContext2D) {
-  ctx.lineWidth = 5;
-  ctx.strokeStyle = C.off;
-  ctx.lineJoin = "round";
-  roundRect(ctx, 110, 40, 292, 432, 10);
-  ctx.fillStyle = "rgba(6,182,212,0.03)";
-  ctx.fill();
-  ctx.stroke();
-  for (let i = 0; i < 8; i++) {
-    const y = 64 + i * 50;
-    roundRect(ctx, 132, y, 248, 38, 4);
-    ctx.strokeStyle = "rgba(248,250,252,0.28)";
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = "rgba(166, 180, 158, 0.4)";
     ctx.lineWidth = 2;
     ctx.stroke();
+
     ctx.beginPath();
-    ctx.arc(154, y + 19, 5, 0, Math.PI * 2);
-    ctx.fillStyle = i < 6 ? C.cyan : C.purple;
+    ctx.arc(x, y, 14, 0, Math.PI * 2);
+    ctx.fillStyle = C.oceanDeep;
     ctx.fill();
-    for (let s = 0; s < 5; s++) {
-      ctx.beginPath();
-      ctx.moveTo(190 + s * 36, y + 10);
-      ctx.lineTo(190 + s * 36, y + 28);
-      ctx.strokeStyle = "rgba(248,250,252,0.1)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
+    ctx.strokeStyle = C.villaNova;
+    ctx.lineWidth = 3;
+    ctx.stroke();
   }
+  ctx.beginPath();
+  ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+  ctx.fillStyle = C.villaNova;
+  ctx.fill();
 }
 
-// ── camera path (trimmed to the hero's own scroll range, same easing model
-//    as the source file's full journey) ─────────────────────────────────────
 type Key = { t: number; cz: number; cy: number; cx: number; lz: number; ly: number; lx: number };
 const KEYS: Key[] = [
   { t: 0.0, cz: 20, cy: 2.2, cx: 0, lz: -5, ly: 1.5, lx: 0 },
-  { t: 0.22, cz: 9, cy: 1.9, cx: 0.4, lz: -12, ly: 1.3, lx: 0 },
-  { t: 0.48, cz: -2, cy: 2.1, cx: -0.4, lz: -20, ly: 1.4, lx: 0 },
-  { t: 0.72, cz: -12, cy: 2.4, cx: 0.2, lz: -28, ly: 1.6, lx: 0 },
+  { t: 0.25, cz: 9, cy: 1.9, cx: 0.4, lz: -12, ly: 1.3, lx: 0 },
+  { t: 0.50, cz: -2, cy: 2.1, cx: -0.4, lz: -20, ly: 1.4, lx: 0 },
+  { t: 0.75, cz: -12, cy: 2.4, cx: 0.2, lz: -28, ly: 1.6, lx: 0 },
   { t: 1.0, cz: -20, cy: 2.6, cx: 0, lz: -36, ly: 1.7, lx: 0 },
 ];
+
 function easeInOut(t: number) {
   return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 }
+
 function samplePath(p: number) {
   let a = KEYS[0], b = KEYS[KEYS.length - 1];
   for (let i = 0; i < KEYS.length - 1; i++) {
@@ -249,66 +174,55 @@ export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 1);
+    renderer.setClearColor(0x090F0D, 1);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
-    scene.fog = new THREE.FogExp2(0x000000, 0.028);
+    scene.background = new THREE.Color(0x090F0D);
+    scene.fog = new THREE.FogExp2(0x090F0D, 0.026);
 
     const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 300);
     camera.position.set(0, 2.2, 20);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-    const dl = new THREE.DirectionalLight(0x06b6d4, 0.4);
+    scene.add(new THREE.AmbientLight(0xE2E0C8, 0.7));
+    const dl = new THREE.DirectionalLight(0x4E635E, 0.8);
     dl.position.set(6, 10, 8);
     scene.add(dl);
 
     const G = new THREE.Group();
     scene.add(G);
 
-    // Receding technical floor grid — the "dark metallic foundation".
+    // Oceanic Floor Grid
     const floor = new THREE.Group();
     for (let z = 6; z > -70; z -= 4) {
-      floor.add(precLine([[-16, -2.6, z], [16, -2.6, z]], 0xf8fafc, 0.028));
+      floor.add(precLine([[-16, -2.6, z], [16, -2.6, z]], 0x818C78, 0.04));
     }
     for (let x = -16; x <= 16; x += 2.6) {
-      floor.add(precLine([[x, -2.6, 6], [x, -2.6, -70]], 0xf8fafc, 0.028));
+      floor.add(precLine([[x, -2.6, 6], [x, -2.6, -70]], 0x818C78, 0.04));
     }
     G.add(floor);
 
-    // Faint volumetric purple wash, deep in the fog — reads as ambient depth.
-    const purpleWash = glowSprite("rgba(147,51,234,0.9)", 22, 0.16);
-    purpleWash.position.set(-4, 3, -24);
-    G.add(purpleWash);
-    const cyanWash = glowSprite("rgba(6,182,212,0.9)", 18, 0.14);
-    cyanWash.position.set(5, -1, -14);
-    G.add(cyanWash);
+    // Ocean Deep Volumetric Glow Sprites
+    const deepWash = glowSprite("rgba(78,99,94,0.85)", 24, 0.35);
+    deepWash.position.set(0, 2, -15);
+    G.add(deepWash);
 
-    // Centerpiece shield, softly backlit.
-    const shieldGlow = glowSprite("rgba(6,182,212,0.85)", 7, 0.5);
-    shieldGlow.position.set(0, 0.6, -6.4);
-    G.add(shieldGlow);
-    const shield = plane(mkTex(dShield), 3.4, 3.4);
-    shield.position.set(0, 0.6, -6);
-    G.add(shield);
+    const villaWash = glowSprite("rgba(226,224,200,0.4)", 16, 0.25);
+    villaWash.position.set(-6, -1, -20);
+    G.add(villaWash);
 
-    const orbitDefs = [
-      { tex: mkTex(dServerRack), x: -6, y: 1.4, z: -10, s: 1.7 },
-      { tex: mkTex(dNetworkNodes), x: 6, y: -0.6, z: -13, s: 2.1 },
-      { tex: mkTex(dPortalMark), x: -5.2, y: -1.8, z: -20, s: 1.9 },
-      { tex: mkTex(dNetworkNodes), x: 5, y: 2.4, z: -24, s: 1.5 },
-      { tex: mkTex(dServerRack), x: -3, y: 0.4, z: -30, s: 1.4 },
-    ];
-    const orbitMeshes = orbitDefs.map((o, i) => {
-      const m = plane(o.tex, o.s, o.s);
-      m.name = "orbit" + i;
-      m.position.set(o.x, o.y, o.z);
-      m.material.opacity = 0.82;
-      G.add(m);
-      return m;
-    });
+    // Centerpiece Emblem
+    const emblemGlow = glowSprite("rgba(78,99,94,0.9)", 8, 0.6);
+    emblemGlow.position.set(0, 0.6, -6.4);
+    G.add(emblemGlow);
 
-    // ── ScrollTrigger drives progress; RAF loop lerps the camera to it ──────
+    const emblem = plane(mkTex(dEmblem), 3.6, 3.6);
+    emblem.position.set(0, 0.6, -6);
+    G.add(emblem);
+
+    const syscallPlane = plane(mkTex(dSyscallNodes), 3.2, 3.2);
+    syscallPlane.position.set(6, -0.6, -13);
+    G.add(syscallPlane);
+
     const progress = { raw: 0, smooth: 0 };
     const st = ScrollTrigger.create({
       trigger: wrapper,
@@ -324,7 +238,6 @@ export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
       const overlay = overlayRef.current;
       const hint = hintRef.current;
       if (overlay) {
-        // Fully visible at rest; fades out as the camera pushes into the scene.
         const o = 1 - Math.max(0, Math.min(1, (p - 0.58) / 0.16));
         overlay.style.opacity = String(o);
         overlay.style.transform = `translateY(${(1 - o) * -18}px) scale(${1 - (1 - o) * 0.02})`;
@@ -351,15 +264,10 @@ export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
       camera.lookAt(cam.lx + sway * 0.3, cam.ly, cam.lz);
 
       if (!reduced) {
-        shield.position.y = 0.6 + Math.sin(T * 0.6) * 0.05;
-        shield.rotation.z = Math.sin(T * 0.3) * 0.025;
-        shieldGlow.position.y = shield.position.y;
-        orbitMeshes.forEach((m, i) => {
-          m.position.y += 0;
-          m.rotation.z = Math.sin(T * 0.35 + i * 1.3) * 0.03;
-          m.material.opacity = 0.72 + Math.sin(T * 0.8 + i) * 0.1;
-        });
-        purpleWash.rotation.z = T * 0.02;
+        emblem.position.y = 0.6 + Math.sin(T * 0.6) * 0.05;
+        emblem.rotation.z = Math.sin(T * 0.3) * 0.025;
+        emblemGlow.position.y = emblem.position.y;
+        syscallPlane.rotation.z = T * 0.1;
       }
 
       setOverlays(progress.smooth);
@@ -379,17 +287,8 @@ export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
       window.removeEventListener("resize", onResize);
       st.kill();
       renderer.dispose();
-      scene.traverse((obj) => {
-        if (obj instanceof THREE.Mesh || obj instanceof THREE.Sprite) {
-          obj.geometry?.dispose?.();
-          const mat = obj.material as THREE.Material & { map?: THREE.Texture | null };
-          mat.map?.dispose?.();
-          mat.dispose?.();
-        }
-      });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [wrapperRef, overlayRef, hintRef]);
 
   return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />;
 }
