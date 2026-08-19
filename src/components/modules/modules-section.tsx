@@ -8,42 +8,48 @@ import { ModuleCard, type ModuleData } from "./module-card";
 const MODULES: ModuleData[] = [
   {
     index: "01",
-    short: "Kernel Layer",
-    title: "Kernel-Level Runtime Defense",
+    short: "Linux Kernel Sandbox Runtime Defense",
+    title: "Kernel-Level Runtime Defense Engine",
     engineer: "Umar Ahmed",
+    role: "Lead Systems & Security Engineer",
     problem:
-      "Threat actors obfuscate malicious code within trusted packages that bypass static scanners and activate only at runtime to steal credentials.",
+      "Threat actors obfuscate malicious code inside trusted packages that bypass static CI/CD scanners and execute payload exfiltrations directly in memory at runtime.",
     solution:
-      "Deploys safe eBPF probes directly in the Linux kernel to intercept system calls and block unauthorized actions using Temporal Provenance Graphs.",
-    cta: "Launch eBPF Engine",
-    accent: "#06B6D4",
+      "Deploys safe eBPF probes directly into the Linux kernel space to intercept unauthorized system calls (execve, openat, connect) and block payloads using Temporal Provenance Graphs.",
+    cta: "Launch eBPF Sandbox Demo",
+    accent: "#4E635E",
     icon: IconKernel,
+    interactiveType: "ebpf",
   },
   {
     index: "02",
-    short: "People Layer",
-    title: "AI-Powered HR Performance & Attrition Management",
+    short: "Enterprise AI Onboarding & People Ops",
+    title: "Enterprise AI Onboarding & Vector RAG Agent",
     engineer: "Syed Sirajuddin Zain",
+    role: "Lead AI & Developer Experience Architect",
     problem:
-      "Companies lack early warning indicators for workplace burnout, relying on biased reviews and discovering problems only after key talent resigns.",
+      "New engineers take up to 4.2 months to become productive due to fragmented codebases, while engineering teams suffer silent burnout with zero early warning indicators.",
     solution:
-      "Combines NLP sentiment analysis with daily work signals to generate live, predictive risk scores and early flight-risk alerts.",
-    cta: "Launch People Ops Engine",
-    accent: "#9333EA",
+      "Combines local RAG vector search over internal repositories with privacy-preserving sentiment analysis to provide instant line-level code citations and proactive retention metrics.",
+    cta: "Launch RAG Onboarding Agent",
+    accent: "#A6B49E",
     icon: IconPulseSignal,
+    interactiveType: "rag",
   },
   {
     index: "03",
-    short: "Ledger Layer",
-    title: "Autonomous AI CA & Trade Audit Engine",
+    short: "Autonomous AI Chartered Accountant",
+    title: "Autonomous AI Chartered Accountant & Trade Audit",
     engineer: "Syed Hammad Hussain",
+    role: "Lead Financial Intelligence & Graph Engineer",
     problem:
-      "Standard LLMs hallucinate deterministic arithmetic causing costly accounting errors, while manual audits miss complex shell company fraud.",
+      "Standard LLMs hallucinate floating-point arithmetic causing costly reconciliation errors, while manual accounting fails to uncover multi-hop shell company vendor fraud.",
     solution:
-      "Uses a Neuro-Symbolic Architecture to extract data, cross-references policies via local RAG, and utilizes a Graph Database to hunt for vendor spoofing.",
+      "Uses a Neuro-Symbolic architecture separating neural document perception from deterministic Python decimal math, combined with a multi-hop Graph Database for instant fraud detection.",
     cta: "Launch Financial Audit Engine",
-    accent: "#7C5CDB",
+    accent: "#818C78",
     icon: IconNeuroSymbolic,
+    interactiveType: "audit",
   },
 ];
 
@@ -93,18 +99,16 @@ export function ModulesSection() {
   });
 
   return (
-    <section id="modules" ref={sectionRef} className="relative bg-obsidian">
-      <div className="modules-head mx-auto max-w-[110rem] px-6 pb-16 pt-28 md:px-10 md:pt-36">
-        <p className="label-mono text-cyan">The Micro-Platform Suite</p>
-        <h2 className="display-lg mt-5 max-w-3xl">
-          Three engines.
+    <section id="modules" ref={sectionRef} className="relative bg-abyssal">
+      <div className="modules-head mx-auto max-w-[110rem] px-6 pb-16 pt-24 md:px-10 md:pt-32">
+        <p className="label-story text-siren-song">THE MICRO-PLATFORM SUITE</p>
+        <h2 className="display-chapter mt-4 max-w-3xl text-villa-nova">
+          THREE ENGINES.
           <br />
-          Independently lethal.
+          INDEPENDENTLY LETHAL.
         </h2>
-        <p className="body-lg mt-6 max-w-xl">
-          Not a bundle of point solutions — three purpose-built engines,
-          each solving a distinct enterprise liability, deployed on one
-          shared foundation.
+        <p className="body-editorial mt-5 max-w-xl text-foreground-muted">
+          Not a fragmented bundle of SaaS plugins — three purpose-built sovereign engines, each solving a critical enterprise operational risk on a unified foundation.
         </p>
       </div>
 
