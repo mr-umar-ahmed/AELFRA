@@ -1,26 +1,217 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   AELFRA — Ocean Deep Cinematic Design System
+   Palette Swatches (User Specified):
+   - OCEAN DEEP : #4E635E
+   - VILLA NOVA : #E2E0C8
+   - SIREN SONG : #A6B49E
+   - BIG RIVER  : #818C78
+   ============================================================ */
+
+@theme {
+  /* Core Swatch Colors */
+  --color-ocean-deep: #4E635E;
+  --color-villa-nova: #E2E0C8;
+  --color-siren-song: #A6B49E;
+  --color-big-river:  #818C78;
+
+  /* Atmospheric Oceanic Backgrounds */
+  --color-abyssal: #090F0D;
+  --color-abyssal-surface: #101916;
+  --color-abyssal-surface-hi: #162420;
+  
+  /* Foreground & Text Tokens */
+  --color-foreground: #F4F3EA;
+  --color-foreground-muted: #C0C8C3;
+  --color-foreground-dim: #8A9690;
+  
+  /* Structural Lines & Glass */
+  --color-line: rgba(226, 224, 200, 0.12);
+  --color-line-hi: rgba(226, 224, 200, 0.25);
+  --color-line-ocean: rgba(78, 99, 94, 0.35);
+
+  /* Semantic Aliases */
+  --color-background: var(--color-abyssal);
+  --color-surface: var(--color-abyssal-surface);
+
+  /* Typography */
+  --font-sans: var(--font-geist), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  /* Shadows & Volumetric Glows */
+  --shadow-ocean: 0 20px 80px -15px rgba(78, 99, 94, 0.35);
+  --shadow-depth: 0 30px 100px -20px rgba(0, 0, 0, 0.85);
+
+  /* Cinematic Easings */
+  --ease-cinematic: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ============================================================
+   Base Setup
+   ============================================================ */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--color-line);
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--color-abyssal);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  body {
+    background: var(--color-abyssal);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  ::selection {
+    background: var(--color-ocean-deep);
+    color: var(--color-villa-nova);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-abyssal);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-big-river);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-siren-song);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================
+   Awwwards Editorial Typography Primitives
+   ============================================================ */
+
+@utility display-hero {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: clamp(3.2rem, 9vw, 9.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+@utility display-chapter {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(2.2rem, 5.5vw, 5.2rem);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+@utility display-title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.2vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+@utility label-story {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-siren-song);
+}
+
+@utility body-editorial {
+  font-size: clamp(1rem, 1.2vw, 1.25rem);
+  line-height: 1.65;
+  color: var(--color-foreground-muted);
+  font-weight: 400;
+}
+
+/* ============================================================
+   Atmospheric Glass & Materials
+   ============================================================ */
+
+@utility ocean-glass {
+  background: linear-gradient(
+    145deg,
+    rgba(16, 25, 22, 0.75) 0%,
+    rgba(9, 15, 13, 0.85) 100%
+  );
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-depth);
+}
+
+@utility ocean-glass-hi {
+  background: linear-gradient(
+    145deg,
+    rgba(22, 36, 32, 0.88) 0%,
+    rgba(12, 20, 17, 0.92) 100%
+  );
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid var(--color-line-hi);
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.9), 0 0 30px rgba(78, 99, 94, 0.2);
+}
+
+@utility villa-tag {
+  background: rgba(226, 224, 200, 0.08);
+  border: 1px solid rgba(226, 224, 200, 0.2);
+  color: var(--color-villa-nova);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+@utility oceanic-grid {
+  background-image: linear-gradient(
+      to right,
+      rgba(226, 224, 200, 0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(226, 224, 200, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Water Ripple Scanline Effect */
+@keyframes ocean-wave-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.03);
+  }
+}
+
+.animate-ocean-pulse {
+  animation: ocean-wave-pulse 6s ease-in-out infinite;
 }
