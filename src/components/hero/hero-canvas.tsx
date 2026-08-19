@@ -4,7 +4,6 @@ import { useEffect, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { ScrollTrigger } from "@/lib/gsap";
 
-// Palette matching user swatches:
 const C = {
   oceanDeep: "#4E635E",
   villaNova: "#E2E0C8",
@@ -15,16 +14,16 @@ const C = {
 
 type Props = {
   wrapperRef: RefObject<HTMLDivElement | null>;
-  overlayRef: RefObject<HTMLDivElement | null>;
-  hintRef: RefObject<HTMLDivElement | null>;
+  onStageChange?: (stageIndex: number) => void;
 };
 
-function mkTex(draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void, w = 512, h = 512) {
+// Texture generator helper
+function mkTex(drawFn: (ctx: CanvasRenderingContext2D, w: number, h: number) => void, w = 512, h = 512) {
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
   const ctx = c.getContext("2d")!;
-  draw(ctx, w, h);
+  drawFn(ctx, w, h);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.generateMipmaps = false;
@@ -33,19 +32,21 @@ function mkTex(draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => vo
   return tex;
 }
 
-function plane(tex: THREE.Texture, w: number, h: number) {
+function plane(tex: THREE.Texture, w: number, h: number, depthWrite = false) {
   return new THREE.Mesh(
     new THREE.PlaneGeometry(w, h),
-    new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite })
   );
 }
 
-function precLine(pts: [number, number, number][], col = 0xE2E0C8, op = 1) {
+function jLine(pts: [number, number, number][], col = 0xE2E0C8, op = 1) {
   const verts: number[] = [];
-  pts.forEach(([x, y, z]) => verts.push(x, y, z || 0));
+  pts.forEach(([x, y, z]) => {
+    verts.push(x + (Math.random() - 0.5) * 0.02, y + (Math.random() - 0.5) * 0.02, z || 0);
+  });
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
-  return new THREE.Line(g, new THREE.LineBasicMaterial({ color: col, opacity: op, transparent: true }));
+  return new THREE.Line(g, new THREE.LineBasicMaterial({ color: col, opacity: op, transparent: op < 1 }));
 }
 
 function glowSprite(color: string, size: number, opacity = 0.55) {
@@ -68,72 +69,219 @@ function glowSprite(color: string, size: number, opacity = 0.55) {
   return s;
 }
 
-// Draw emblem in Ocean Deep + Villa Nova
-function dEmblem(ctx: CanvasRenderingContext2D) {
+// ── Draw Functions ──────────────────────────────────────────────────────────
+
+// Stage 1: Sovereign Sentinel Shield & Trident
+function dShield(ctx: CanvasRenderingContext2D) {
   ctx.save();
   ctx.translate(256, 256);
-  ctx.beginPath();
-  ctx.arc(0, 0, 190, 0, Math.PI * 2);
-  ctx.lineWidth = 4;
   ctx.strokeStyle = C.villaNova;
-  ctx.stroke();
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
+  // Outer Shield
   ctx.beginPath();
-  ctx.arc(0, 0, 160, 0, Math.PI * 2);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = C.sirenSong;
+  ctx.moveTo(0, -180);
+  ctx.bezierCurveTo(70, -150, 130, -140, 180, -140);
+  ctx.lineTo(180, 20);
+  ctx.bezierCurveTo(180, 120, 90, 190, 0, 220);
+  ctx.bezierCurveTo(-90, 190, -180, 120, -180, 20);
+  ctx.lineTo(-180, -140);
+  ctx.bezierCurveTo(-130, -140, -70, -150, 0, -180);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(78, 99, 94, 0.25)";
+  ctx.fill();
   ctx.stroke();
 
-  // Geometric Aelfra Trident Symbol
+  // Aelfra Trident Core
   ctx.beginPath();
   ctx.moveTo(0, -110);
-  ctx.lineTo(60, 90);
-  ctx.lineTo(0, 50);
-  ctx.lineTo(-60, 90);
+  ctx.lineTo(50, 80);
+  ctx.lineTo(0, 40);
+  ctx.lineTo(-50, 80);
   ctx.closePath();
-  ctx.fillStyle = "rgba(78, 99, 94, 0.4)";
+  ctx.fillStyle = C.villaNova;
   ctx.fill();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = C.villaNova;
+  ctx.strokeStyle = C.sirenSong;
+  ctx.lineWidth = 4;
   ctx.stroke();
+
+  ctx.font = "bold 32px monospace";
+  ctx.fillStyle = C.villaNova;
+  ctx.textAlign = "center";
+  ctx.fillText("SOVEREIGN PERIMETER", 0, 160);
 
   ctx.restore();
 }
 
-function dSyscallNodes(ctx: CanvasRenderingContext2D) {
-  const cx = 256, cy = 256;
-  for (let i = 0; i < 6; i++) {
-    const angle = (i / 6) * Math.PI * 2;
-    const x = cx + Math.cos(angle) * 140;
-    const y = cy + Math.sin(angle) * 140;
+// Stage 2: Enterprise Liability Crisis House
+function dCrisisHouse(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = C.villaNova;
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  ctx.beginPath();
+  ctx.rect(50, 140, 412, 280);
+  ctx.fillStyle = "rgba(16, 25, 22, 0.7)";
+  ctx.fill();
+  ctx.stroke();
+
+  // Roof
+  ctx.beginPath();
+  ctx.moveTo(30, 140);
+  ctx.lineTo(256, 30);
+  ctx.lineTo(482, 140);
+  ctx.stroke();
+
+  // 3 Threat Windows
+  const windows = ["01 RUNTIME", "02 ATTRITION", "03 FRAUD"];
+  windows.forEach((w, i) => {
+    const x = 80 + i * 130;
     ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(x, y);
-    ctx.strokeStyle = "rgba(166, 180, 158, 0.4)";
-    ctx.lineWidth = 2;
+    ctx.rect(x, 180, 90, 100);
+    ctx.strokeStyle = C.sirenSong;
+    ctx.lineWidth = 4;
     ctx.stroke();
 
-    ctx.beginPath();
-    ctx.arc(x, y, 14, 0, Math.PI * 2);
-    ctx.fillStyle = C.oceanDeep;
-    ctx.fill();
-    ctx.strokeStyle = C.villaNova;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-  }
-  ctx.beginPath();
-  ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+    ctx.font = "bold 16px monospace";
+    ctx.fillStyle = C.villaNova;
+    ctx.textAlign = "center";
+    ctx.fillText(w, x + 45, 235);
+  });
+
+  ctx.font = "bold 36px monospace";
   ctx.fillStyle = C.villaNova;
-  ctx.fill();
+  ctx.textAlign = "center";
+  ctx.fillText("THE ENTERPRISE CRISIS", 256, 380);
 }
 
-type Key = { t: number; cz: number; cy: number; cx: number; lz: number; ly: number; lx: number };
+// Stage 3: Module 01 - Kernel Defense Syscall Towers (Umar Ahmed)
+function dKernelTowers(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = C.villaNova;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+
+  // 3 eBPF Syscall Towers
+  for (let i = 0; i < 3; i++) {
+    const x = 70 + i * 135;
+    const h = 180 + i * 35;
+    const y = 380 - h;
+    ctx.beginPath();
+    ctx.rect(x, y, 100, h);
+    ctx.fillStyle = "rgba(78, 99, 94, 0.4)";
+    ctx.fill();
+    ctx.stroke();
+
+    // Syscall Nodes
+    ctx.beginPath();
+    ctx.arc(x + 50, y + 40, 16, 0, Math.PI * 2);
+    ctx.fillStyle = C.villaNova;
+    ctx.fill();
+  }
+
+  ctx.font = "bold 28px monospace";
+  ctx.fillStyle = C.villaNova;
+  ctx.textAlign = "center";
+  ctx.fillText("MODULE 01: LINUX KERNEL DEFENSE", 256, 430);
+  ctx.font = "20px monospace";
+  ctx.fillStyle = C.sirenSong;
+  ctx.fillText("Lead: Umar Ahmed // eBPF Engine", 256, 465);
+}
+
+// Stage 4: Module 02 - AI Onboarding RAG Rocket (Syed Sirajuddin Zain)
+function dRagRocket(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = C.villaNova;
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  // Vector Rocket Body
+  ctx.beginPath();
+  ctx.moveTo(256, 40);
+  ctx.bezierCurveTo(180, 120, 160, 260, 160, 360);
+  ctx.lineTo(352, 360);
+  ctx.bezierCurveTo(352, 260, 332, 120, 256, 40);
+  ctx.fillStyle = "rgba(166, 180, 158, 0.3)";
+  ctx.fill();
+  ctx.stroke();
+
+  // Vector Core Eye
+  ctx.beginPath();
+  ctx.arc(256, 180, 40, 0, Math.PI * 2);
+  ctx.fillStyle = C.villaNova;
+  ctx.fill();
+
+  ctx.font = "bold 26px monospace";
+  ctx.fillStyle = C.villaNova;
+  ctx.textAlign = "center";
+  ctx.fillText("MODULE 02: AI ONBOARDING RAG", 256, 420);
+  ctx.font = "18px monospace";
+  ctx.fillStyle = C.sirenSong;
+  ctx.fillText("Lead: Syed Sirajuddin Zain // Vector Engine", 256, 455);
+}
+
+// Stage 5: Module 03 - Autonomous AI Audit Flask (Syed Hammad Hussain)
+function dAuditFlask(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = C.villaNova;
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+
+  // Flask Neck & Base
+  ctx.beginPath();
+  ctx.moveTo(200, 50);
+  ctx.lineTo(200, 150);
+  ctx.bezierCurveTo(120, 200, 80, 280, 80, 350);
+  ctx.bezierCurveTo(80, 410, 432, 410, 432, 350);
+  ctx.bezierCurveTo(432, 280, 392, 200, 312, 150);
+  ctx.lineTo(312, 50);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(129, 140, 120, 0.35)";
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.font = "bold 24px monospace";
+  ctx.fillStyle = C.villaNova;
+  ctx.textAlign = "center";
+  ctx.fillText("MODULE 03: FINANCIAL AUDIT", 256, 440);
+  ctx.font = "18px monospace";
+  ctx.fillStyle = C.sirenSong;
+  ctx.fillText("Lead: Syed Hammad Hussain // Graph Core", 256, 475);
+}
+
+// Stage 6: Unified Sovereign Convergence Portal
+function dConvergencePortal(ctx: CanvasRenderingContext2D) {
+  const cx = 256, cy = 256;
+  ctx.strokeStyle = C.villaNova;
+
+  for (let r = 220; r > 20; r -= 24) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(226, 224, 200, ${0.1 + r / 400})`;
+    ctx.lineWidth = r > 160 ? 6 : 3;
+    ctx.stroke();
+  }
+
+  ctx.font = "bold 32px monospace";
+  ctx.fillStyle = C.villaNova;
+  ctx.textAlign = "center";
+  ctx.fillText("AELFRA CONVERGENCE", cx, cy - 10);
+  ctx.font = "18px monospace";
+  ctx.fillStyle = C.sirenSong;
+  ctx.fillText("UNIFIED SOVEREIGN CORE", cx, cy + 30);
+}
+
+// Camera Path Keyframes along Z axis
+type Key = { t: number; cz: number; cy: number; cx: number; lz: number; ly: number; lx: number; stage: number };
 const KEYS: Key[] = [
-  { t: 0.0, cz: 20, cy: 2.2, cx: 0, lz: -5, ly: 1.5, lx: 0 },
-  { t: 0.25, cz: 9, cy: 1.9, cx: 0.4, lz: -12, ly: 1.3, lx: 0 },
-  { t: 0.50, cz: -2, cy: 2.1, cx: -0.4, lz: -20, ly: 1.4, lx: 0 },
-  { t: 0.75, cz: -12, cy: 2.4, cx: 0.2, lz: -28, ly: 1.6, lx: 0 },
-  { t: 1.0, cz: -20, cy: 2.6, cx: 0, lz: -36, ly: 1.7, lx: 0 },
+  { t: 0.00, cz: 20,   cy: 2.2, cx: 0,    lz: -5,   ly: 1.5, lx: 0, stage: 0 },
+  { t: 0.15, cz: -15,  cy: 2.0, cx: 0.3,  lz: -35,  ly: 1.5, lx: 0, stage: 1 },
+  { t: 0.32, cz: -55,  cy: 2.2, cx: -0.3, lz: -75,  ly: 1.5, lx: 0, stage: 2 },
+  { t: 0.48, cz: -95,  cy: 2.4, cx: 0.3,  lz: -115, ly: 1.5, lx: 0, stage: 3 },
+  { t: 0.65, cz: -135, cy: 2.4, cx: -0.3, lz: -155, ly: 1.5, lx: 0, stage: 4 },
+  { t: 0.82, cz: -175, cy: 2.6, cx: 0,    lz: -195, ly: 1.8, lx: 0, stage: 5 },
+  { t: 1.00, cz: -215, cy: 2.2, cx: 0,    lz: -245, ly: 1.0, lx: 0, stage: 5 },
 ];
 
 function easeInOut(t: number) {
@@ -158,10 +306,11 @@ function samplePath(p: number) {
     lz: a.lz + (b.lz - a.lz) * f,
     ly: a.ly + (b.ly - a.ly) * f,
     lx: a.lx + (b.lx - a.lx) * f,
+    stage: a.stage,
   };
 }
 
-export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
+export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -178,52 +327,95 @@ export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x090F0D);
-    scene.fog = new THREE.FogExp2(0x090F0D, 0.026);
+    scene.fog = new THREE.FogExp2(0x090F0D, 0.018);
 
-    const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 300);
+    const camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 400);
     camera.position.set(0, 2.2, 20);
 
-    scene.add(new THREE.AmbientLight(0xE2E0C8, 0.7));
-    const dl = new THREE.DirectionalLight(0x4E635E, 0.8);
-    dl.position.set(6, 10, 8);
+    scene.add(new THREE.AmbientLight(0xE2E0C8, 0.8));
+    const dl = new THREE.DirectionalLight(0x4E635E, 0.9);
+    dl.position.set(6, 12, 8);
     scene.add(dl);
 
     const G = new THREE.Group();
     scene.add(G);
 
-    // Oceanic Floor Grid
-    const floor = new THREE.Group();
-    for (let z = 6; z > -70; z -= 4) {
-      floor.add(precLine([[-16, -2.6, z], [16, -2.6, z]], 0x818C78, 0.04));
+    // ── 3D Digital Runway Road ─────────────────────────────────────────────
+    const roadGroup = new THREE.Group();
+    const roadMat = new THREE.MeshBasicMaterial({ color: 0x101916, transparent: true, opacity: 0.7 });
+    const roadMesh = new THREE.Mesh(new THREE.PlaneGeometry(6, 260), roadMat);
+    roadMesh.rotation.x = -Math.PI / 2;
+    roadMesh.position.set(0, -1.2, -120);
+    roadGroup.add(roadMesh);
+
+    for (let z = 10; z > -250; z -= 6) {
+      roadGroup.add(jLine([[-3, -1.2, z], [-3, -1.2, z - 6]], 0x818C78, 0.3));
+      roadGroup.add(jLine([[3, -1.2, z], [3, -1.2, z - 6]], 0x818C78, 0.3));
+      if (z % 18 === 0) {
+        roadGroup.add(jLine([[0, -1.2, z], [0, -1.2, z - 8]], 0xE2E0C8, 0.4));
+      }
     }
-    for (let x = -16; x <= 16; x += 2.6) {
-      floor.add(precLine([[x, -2.6, 6], [x, -2.6, -70]], 0x818C78, 0.04));
+    G.add(roadGroup);
+
+    // Volumetric Glows along path
+    const glows = [
+      { color: "rgba(78,99,94,0.8)", size: 22, x: 0, y: 2, z: -10 },
+      { color: "rgba(226,224,200,0.5)", size: 18, x: -5, y: 1, z: -50 },
+      { color: "rgba(166,180,158,0.6)", size: 20, x: 5, y: 2, z: -90 },
+      { color: "rgba(129,140,120,0.6)", size: 20, x: -4, y: 1, z: -130 },
+      { color: "rgba(78,99,94,0.85)", size: 24, x: 0, y: 2, z: -180 },
+      { color: "rgba(226,224,200,0.6)", size: 26, x: 0, y: 2, z: -230 },
+    ];
+    glows.forEach((g) => {
+      const sprite = glowSprite(g.color, g.size, 0.35);
+      sprite.position.set(g.x, g.y, g.z);
+      G.add(sprite);
+    });
+
+    // ── 6 Stage Checkpoint Meshes ─────────────────────────────────────────
+
+    // Stage 1: Shield Mesh (z = -6)
+    const shieldMesh = plane(mkTex(dShield), 4.2, 4.2);
+    shieldMesh.position.set(0, 0.8, -6);
+    G.add(shieldMesh);
+
+    // Stage 2: Crisis House (z = -45)
+    const crisisMesh = plane(mkTex(dCrisisHouse), 7.2, 7.2);
+    crisisMesh.position.set(0, 2.0, -45);
+    G.add(crisisMesh);
+
+    // Stage 3: Module 01 Kernel Towers (z = -85)
+    const kernelMesh = plane(mkTex(dKernelTowers), 6.8, 6.8);
+    kernelMesh.position.set(-3.5, 1.8, -85);
+    G.add(kernelMesh);
+
+    // Stage 4: Module 02 RAG Rocket (z = -125)
+    const ragMesh = plane(mkTex(dRagRocket), 6.5, 6.5);
+    ragMesh.position.set(3.5, 1.8, -125);
+    G.add(ragMesh);
+
+    // Stage 5: Module 03 Audit Flask (z = -165)
+    const auditMesh = plane(mkTex(dAuditFlask), 6.5, 6.5);
+    auditMesh.position.set(-3.2, 1.8, -165);
+    G.add(auditMesh);
+
+    // Stage 6: Convergence Portal (z = -215)
+    const portalMesh = plane(mkTex(dConvergencePortal), 8.5, 8.5);
+    portalMesh.position.set(0, 2.0, -215);
+    G.add(portalMesh);
+
+    // ── Side Beacons along the path ──────────────────────────────────────
+    for (let z = 0; z > -240; z -= 14) {
+      const side = z % 28 === 0 ? -4.5 : 4.5;
+      const bGlow = glowSprite("rgba(226,224,200,0.6)", 3, 0.4);
+      bGlow.position.set(side, 1.5, z);
+      G.add(bGlow);
     }
-    G.add(floor);
 
-    // Ocean Deep Volumetric Glow Sprites
-    const deepWash = glowSprite("rgba(78,99,94,0.85)", 24, 0.35);
-    deepWash.position.set(0, 2, -15);
-    G.add(deepWash);
-
-    const villaWash = glowSprite("rgba(226,224,200,0.4)", 16, 0.25);
-    villaWash.position.set(-6, -1, -20);
-    G.add(villaWash);
-
-    // Centerpiece Emblem
-    const emblemGlow = glowSprite("rgba(78,99,94,0.9)", 8, 0.6);
-    emblemGlow.position.set(0, 0.6, -6.4);
-    G.add(emblemGlow);
-
-    const emblem = plane(mkTex(dEmblem), 3.6, 3.6);
-    emblem.position.set(0, 0.6, -6);
-    G.add(emblem);
-
-    const syscallPlane = plane(mkTex(dSyscallNodes), 3.2, 3.2);
-    syscallPlane.position.set(6, -0.6, -13);
-    G.add(syscallPlane);
-
+    // ── Scroll & Animation Lerp ────────────────────────────────────────────
     const progress = { raw: 0, smooth: 0 };
+    let currentStage = 0;
+
     const st = ScrollTrigger.create({
       trigger: wrapper,
       start: "top top",
@@ -234,43 +426,40 @@ export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
       },
     });
 
-    function setOverlays(p: number) {
-      const overlay = overlayRef.current;
-      const hint = hintRef.current;
-      if (overlay) {
-        const o = 1 - Math.max(0, Math.min(1, (p - 0.58) / 0.16));
-        overlay.style.opacity = String(o);
-        overlay.style.transform = `translateY(${(1 - o) * -18}px) scale(${1 - (1 - o) * 0.02})`;
-        overlay.style.pointerEvents = o > 0.6 ? "auto" : "none";
-      }
-      if (hint) {
-        hint.style.opacity = p < 0.02 ? "1" : "0";
-      }
-    }
-
     let raf = 0;
     const timer = new THREE.Timer();
+
     function animate() {
       raf = requestAnimationFrame(animate);
       timer.update();
       const dt = Math.min(timer.getDelta(), 0.05);
       const T = timer.getElapsed();
 
-      progress.smooth += (progress.raw - progress.smooth) * (reduced ? 1 : 1 - Math.exp(-dt * 6));
+      progress.smooth += (progress.raw - progress.smooth) * (reduced ? 1 : 1 - Math.exp(-dt * 5));
 
       const cam = samplePath(progress.smooth);
-      const sway = reduced ? 0 : Math.sin(T * 0.22) * 0.16;
+      const sway = reduced ? 0 : Math.sin(T * 0.25) * 0.18;
       camera.position.set(cam.cx + sway, cam.cy, cam.cz);
       camera.lookAt(cam.lx + sway * 0.3, cam.ly, cam.lz);
 
-      if (!reduced) {
-        emblem.position.y = 0.6 + Math.sin(T * 0.6) * 0.05;
-        emblem.rotation.z = Math.sin(T * 0.3) * 0.025;
-        emblemGlow.position.y = emblem.position.y;
-        syscallPlane.rotation.z = T * 0.1;
+      if (cam.stage !== currentStage) {
+        currentStage = cam.stage;
+        onStageChange?.(currentStage);
       }
 
-      setOverlays(progress.smooth);
+      if (!reduced) {
+        shieldMesh.position.y = 0.8 + Math.sin(T * 0.6) * 0.06;
+        shieldMesh.rotation.z = Math.sin(T * 0.3) * 0.02;
+
+        crisisMesh.position.y = 2.0 + Math.sin(T * 0.5 + 1) * 0.05;
+
+        kernelMesh.position.y = 1.8 + Math.sin(T * 0.7 + 2) * 0.08;
+        ragMesh.position.y = 1.8 + Math.sin(T * 0.8 + 3) * 0.1;
+        auditMesh.position.y = 1.8 + Math.sin(T * 0.6 + 4) * 0.07;
+
+        portalMesh.rotation.z = T * 0.08;
+      }
+
       renderer.render(scene, camera);
     }
     animate();
@@ -288,7 +477,7 @@ export function HeroCanvas({ wrapperRef, overlayRef, hintRef }: Props) {
       st.kill();
       renderer.dispose();
     };
-  }, [wrapperRef, overlayRef, hintRef]);
+  }, [wrapperRef, onStageChange]);
 
   return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />;
 }
