@@ -39,7 +39,7 @@ function plane(tex: THREE.Texture, w: number, h: number, depthWrite = false) {
   );
 }
 
-function jLine(pts: [number, number, number][], col = 0xE2E0C8, op = 1) {
+function jLine(pts: [number, number, number][], col = 0xe2e0c8, op = 1) {
   const verts: number[] = [];
   pts.forEach(([x, y, z]) => {
     verts.push(x + (Math.random() - 0.5) * 0.02, y + (Math.random() - 0.5) * 0.02, z || 0);
@@ -284,6 +284,20 @@ const KEYS: Key[] = [
   { t: 1.00, cz: -215, cy: 2.2, cx: 0,    lz: -245, ly: 1.0, lx: 0, stage: 5 },
 ];
 
+/**
+ * Scroll-progress target (0..1 of the hero wrapper) for each of the 6 stages.
+ * Derived from the camera keyframes so the HUD dots land exactly on a stage,
+ * nudged slightly past the boundary so the stage reliably activates.
+ */
+export const STAGE_SCROLL_TARGETS: number[] = (() => {
+  const targets: number[] = [];
+  for (let s = 0; s < 6; s++) {
+    const key = KEYS.find((k) => k.stage === s);
+    targets.push(key ? Math.min(1, key.t + (s === 0 ? 0 : 0.02)) : 1);
+  }
+  return targets;
+})();
+
 function easeInOut(t: number) {
   return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 }
@@ -313,6 +327,13 @@ function samplePath(p: number) {
 export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // The scene must be built exactly once. The stage callback is read through
+  // a ref so a new callback identity never tears down the WebGL world.
+  const onStageChangeRef = useRef(onStageChange);
+  useEffect(() => {
+    onStageChangeRef.current = onStageChange;
+  }, [onStageChange]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const wrapper = wrapperRef.current;
@@ -323,17 +344,18 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x090F0D, 1);
+    renderer.setClearColor(0x090f0d, 1);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x090F0D);
-    scene.fog = new THREE.FogExp2(0x090F0D, 0.018);
+    scene.background = new THREE.Color(0x090f0d);
+    scene.fog = new THREE.FogExp2(0x090f0d, 0.018);
 
-    const camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 400);
+    const isMobile = window.innerWidth < 768;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 75 : 54, window.innerWidth / window.innerHeight, 0.1, 400);
     camera.position.set(0, 2.2, 20);
 
-    scene.add(new THREE.AmbientLight(0xE2E0C8, 0.8));
-    const dl = new THREE.DirectionalLight(0x4E635E, 0.9);
+    scene.add(new THREE.AmbientLight(0xe2e0c8, 0.8));
+    const dl = new THREE.DirectionalLight(0x4e635e, 0.9);
     dl.position.set(6, 12, 8);
     scene.add(dl);
 
@@ -349,10 +371,10 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
     roadGroup.add(roadMesh);
 
     for (let z = 10; z > -250; z -= 6) {
-      roadGroup.add(jLine([[-3, -1.2, z], [-3, -1.2, z - 6]], 0x818C78, 0.3));
-      roadGroup.add(jLine([[3, -1.2, z], [3, -1.2, z - 6]], 0x818C78, 0.3));
+      roadGroup.add(jLine([[-3, -1.2, z], [-3, -1.2, z - 6]], 0x818c78, 0.3));
+      roadGroup.add(jLine([[3, -1.2, z], [3, -1.2, z - 6]], 0x818c78, 0.3));
       if (z % 18 === 0) {
-        roadGroup.add(jLine([[0, -1.2, z], [0, -1.2, z - 8]], 0xE2E0C8, 0.4));
+        roadGroup.add(jLine([[0, -1.2, z], [0, -1.2, z - 8]], 0xe2e0c8, 0.4));
       }
     }
     G.add(roadGroup);
@@ -373,33 +395,26 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
     });
 
     // ── 6 Stage Checkpoint Meshes ─────────────────────────────────────────
-
-    // Stage 1: Shield Mesh (z = -6)
     const shieldMesh = plane(mkTex(dShield), 4.2, 4.2);
     shieldMesh.position.set(0, 0.8, -6);
     G.add(shieldMesh);
 
-    // Stage 2: Crisis House (z = -45)
     const crisisMesh = plane(mkTex(dCrisisHouse), 7.2, 7.2);
     crisisMesh.position.set(0, 2.0, -45);
     G.add(crisisMesh);
 
-    // Stage 3: Module 01 Kernel Towers (z = -85)
     const kernelMesh = plane(mkTex(dKernelTowers), 6.8, 6.8);
     kernelMesh.position.set(-3.5, 1.8, -85);
     G.add(kernelMesh);
 
-    // Stage 4: Module 02 RAG Rocket (z = -125)
     const ragMesh = plane(mkTex(dRagRocket), 6.5, 6.5);
     ragMesh.position.set(3.5, 1.8, -125);
     G.add(ragMesh);
 
-    // Stage 5: Module 03 Audit Flask (z = -165)
     const auditMesh = plane(mkTex(dAuditFlask), 6.5, 6.5);
     auditMesh.position.set(-3.2, 1.8, -165);
     G.add(auditMesh);
 
-    // Stage 6: Convergence Portal (z = -215)
     const portalMesh = plane(mkTex(dConvergencePortal), 8.5, 8.5);
     portalMesh.position.set(0, 2.0, -215);
     G.add(portalMesh);
@@ -415,6 +430,7 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
     // ── Scroll & Animation Lerp ────────────────────────────────────────────
     const progress = { raw: 0, smooth: 0 };
     let currentStage = 0;
+    let heroActive = true;
 
     const st = ScrollTrigger.create({
       trigger: wrapper,
@@ -424,7 +440,13 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
       onUpdate: (self) => {
         progress.raw = self.progress;
       },
+      onToggle: (self) => {
+        heroActive = self.isActive;
+      },
     });
+    // The hero starts at scroll 0, so it is active on load even before the
+    // first toggle fires.
+    heroActive = true;
 
     let raf = 0;
     const timer = new THREE.Timer();
@@ -435,6 +457,11 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
       const dt = Math.min(timer.getDelta(), 0.05);
       const T = timer.getElapsed();
 
+      // Skip rendering entirely while the hero is scrolled out of view and
+      // the camera has settled — saves GPU for the DOM sections below.
+      const settled = Math.abs(progress.raw - progress.smooth) < 0.0005;
+      if (!heroActive && settled) return;
+
       progress.smooth += (progress.raw - progress.smooth) * (reduced ? 1 : 1 - Math.exp(-dt * 5));
 
       const cam = samplePath(progress.smooth);
@@ -444,7 +471,7 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
 
       if (cam.stage !== currentStage) {
         currentStage = cam.stage;
-        onStageChange?.(currentStage);
+        onStageChangeRef.current?.(currentStage);
       }
 
       if (!reduced) {
@@ -465,8 +492,11 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
     animate();
 
     function onResize() {
+      const isMobile = window.innerWidth < 768;
+      camera.fov = isMobile ? 75 : 54;
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
     window.addEventListener("resize", onResize);
@@ -475,9 +505,23 @@ export function HeroCanvas({ wrapperRef, onStageChange }: Props) {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
       st.kill();
+      // Free every GPU resource this scene allocated.
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Sprite) {
+          obj.geometry?.dispose?.();
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach((mat: THREE.Material & { map?: THREE.Texture | null }) => {
+            mat?.map?.dispose?.();
+            mat?.dispose?.();
+          });
+        }
+      });
+      timer.dispose();
       renderer.dispose();
     };
-  }, [wrapperRef, onStageChange]);
+    // Build once on mount — everything dynamic flows through refs above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />;
 }
