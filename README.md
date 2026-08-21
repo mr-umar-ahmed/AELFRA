@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <h1>🛡️ AELFRA</h1>
+  <p><b>Sovereign Intelligence at the Kernel Boundary</b></p>
+  <p><i>The ultimate autopilot and runtime defense sentinel for modern software ecosystems, unifying Linux kernel probes, repository onboarding, and deterministic audit under one unbreakable 3D foundation.</i></p>
+</div>
 
-## Getting Started
+---
 
-First, run the development server:
+## 🚀 The Micro-Platform Suite
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+AELFRA is composed of three interconnected modules designed to provide full-spectrum sovereign intelligence.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🛡️ Module 01: Aelfra Aegis (Kernel-Level Runtime Defense Engine)
+Aegis is an eBPF-powered engine providing live kernel defense monitoring. It intercepts and analyzes system calls at the kernel level with zero overhead.
+- **Features:** Interactive eBPF telemetry simulation (`execve`, `openat` exploit block, Temporal Provenance Graph trace).
+- 🔗 **Live Deployment:** [Launch Aelfra Aegis](https://aelfra-aegis.vercel.app/)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🧠 Module 02: AI Onboarding RAG (Vector Engine)
+A specialized retrieval-augmented generation engine designed to ingest and make sense of complex organizational repositories. 
+- **Features:** Interactive vector RAG query selector and local repository code citation explorer.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 📊 Module 03: Autonomous AI Audit (Graph Core)
+A deterministic reconciliation engine built on Neuro-Symbolic architecture.
+- **Features:** Side-by-side comparison of standard floating-point OCR hallucinations versus Aelfra's deterministic decimal math and zero-shell vendor graphs.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🌌 The Convergence
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The **Aelfra Sovereign Core** integrates these three engines into a unified, zero-trust architecture. It operates across three foundational pillars:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Shared Sovereign Identity**: Cryptographically secure and decentralized verification.
+2. **Immutable Evidence Spine**: Tamper-proof logging and telemetry provenance.
+3. **Zero-Trust Perimeter**: Absolute boundary enforcement starting from the OS kernel.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 👨‍💻 Lead Architects
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Name | Role | Socials & Links |
+| :--- | :--- | :--- |
+| **Umar Ahmed** | *Kernel Layer // Lead Systems & Security Engineer* | [LinkedIn](https://www.linkedin.com/in/umar-ahmed-93658b272?utm_source=share_via&utm_content=profile&utm_medium=member_android) <br/> [Portfolio](https://umar-s-portfolio-ten.vercel.app/) <br/> [GitHub](https://github.com/mr-umar-ahmed) |
+| **Syed Sirajuddin Zain** | *People Layer // Lead AI & Developer Experience Architect* | [LinkedIn](https://www.linkedin.com/in/syed-sirajuddin-zain-1b582a366) <br/> [Portfolio](https://zainportfoliooo.netlify.app) <br/> [GitHub](https://github.com/syedsirajuddinzain) |
+| **Syed Hammad Hussain** | *Ledger Layer // Lead Financial Intelligence & Graph Engineer* | [LinkedIn](https://www.linkedin.com/in/syed-hammad-hussain-012607393/) <br/> [Email](mailto:syedhammadhussain416@gmail.com) <br/> [GitHub](https://github.com/Mr-Hammad-codes) |
+
+---
+
+<div align="center">
+  <p><i>Built with Next.js, GSAP, and Tailwind CSS.</i></p>
+</div>
